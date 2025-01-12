@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Dimensions, View } from 'react-native';
+import { StyleSheet, Dimensions, View, Platform } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
 import { GameBoard } from '@/components/game/GameBoard';
 import { GameControls } from '@/components/game/GameControls';
 import { GameHeader } from '@/components/game/GameHeader';
 import { GameOverModal } from '@/components/game/GameOverModal';
 import { useGameLogic } from '@/hooks/useGameLogic';
 
-const { width } = Dimensions.get('window');
-const BOARD_SIZE = Math.floor(width * 0.9); // 90% of screen width
-const GRID_SIZE = 20; // 20x20 grid
+// Web için özel boyutlandırma
+const BOARD_SIZE = Platform.OS === 'web' 
+  ? Math.min(600, Math.floor(Dimensions.get('window').height * 0.6)) // Web için maksimum 600px veya ekran yüksekliğinin %60'ı
+  : Math.floor(Dimensions.get('window').width * 0.9); // Mobil için ekran genişliğinin %90'ı
+
+const GRID_SIZE = 20;
 
 export default function GameScreen() {
   const { playerName, country } = useLocalSearchParams<{ 
@@ -34,25 +38,73 @@ export default function GameScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <GameHeader 
-        score={score}
-        countryCode={country}
-        onPause={pauseGame}
-        isPaused={isPaused}
-      />
-      
-      <GameBoard
-        size={BOARD_SIZE}
-        gridSize={GRID_SIZE}
-        snake={snake}
-        food={food}
-      />
+      {Platform.OS === 'web' ? (
+        // Web layout
+        <View style={styles.webContainer}>
+          <View style={styles.gameSection}>
+            <GameHeader 
+              score={score}
+              countryCode={country}
+              isPaused={isPaused}
+              onPause={() => {
+                if (isPaused) {
+                  resumeGame();
+                } else {
+                  pauseGame();
+                }
+              }}
+            />
+            
+            <GameBoard
+              size={BOARD_SIZE}
+              gridSize={GRID_SIZE}
+              snake={snake}
+              food={food}
+            />
 
-      <GameControls
-        onDirectionChange={setDirection}
-        currentDirection={direction}
-        disabled={isGameOver || isPaused}
-      />
+            <GameControls
+              onDirectionChange={setDirection}
+              currentDirection={direction}
+              disabled={isGameOver || isPaused}
+            />
+          </View>
+
+          <View style={styles.rankingSection}>
+            {/* Burada sıralama bileşeni eklenecek */}
+            <ThemedText type="title">Leaderboard</ThemedText>
+            {/* Sıralama listesi buraya gelecek */}
+          </View>
+        </View>
+      ) : (
+        // Mobile layout
+        <>
+          <GameHeader 
+            score={score}
+            countryCode={country}
+            isPaused={isPaused}
+            onPause={() => {
+              if (isPaused) {
+                resumeGame();
+              } else {
+                pauseGame();
+              }
+            }}
+          />
+          
+          <GameBoard
+            size={BOARD_SIZE}
+            gridSize={GRID_SIZE}
+            snake={snake}
+            food={food}
+          />
+
+          <GameControls
+            onDirectionChange={setDirection}
+            currentDirection={direction}
+            disabled={isGameOver || isPaused}
+          />
+        </>
+      )}
 
       <GameOverModal
         visible={isGameOver}
@@ -71,5 +123,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 20,
+  },
+  webContainer: {
+    width: '100%',
+    height: '100%',
+    flexDirection: 'row',
+    gap: 20,
+  },
+  gameSection: {
+    flex: 2, // Oyun alanı 2 birim
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  rankingSection: {
+    flex: 1, // Sıralama alanı 1 birim
+    padding: 20,
+    borderLeftWidth: 1,
+    borderLeftColor: '#ccc',
   },
 }); 

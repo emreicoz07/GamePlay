@@ -1,14 +1,60 @@
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { ThemedText } from '@/components/ThemedText';
+
+import { StyleSheet, View, TouchableOpacity, Platform } from 'react-native';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import type { Direction } from '@/hooks/useGameLogic';
+import { useEffect } from 'react';
 
 type GameControlsProps = {
   onDirectionChange: (direction: Direction) => void;
   currentDirection: Direction;
-  disabled: boolean;
+  disabled?: boolean;
 };
 
 export function GameControls({ onDirectionChange, currentDirection, disabled }: GameControlsProps) {
+  // Web platformu için klavye kontrollerini ekleyelim
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const handleKeyPress = (event: KeyboardEvent) => {
+        if (disabled) return;
+        
+        switch (event.key.toLowerCase()) {
+          case 'arrowup':
+          case 'w':
+            if (currentDirection !== 'DOWN') onDirectionChange('UP');
+            break;
+          case 'arrowdown':
+          case 's':
+            if (currentDirection !== 'UP') onDirectionChange('DOWN');
+            break;
+          case 'arrowleft':
+          case 'a':
+            if (currentDirection !== 'RIGHT') onDirectionChange('LEFT');
+            break;
+          case 'arrowright':
+          case 'd':
+            if (currentDirection !== 'LEFT') onDirectionChange('RIGHT');
+            break;
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyPress);
+      return () => window.removeEventListener('keydown', handleKeyPress);
+    }
+  }, [onDirectionChange, currentDirection, disabled]);
+
+  // Web platformunda kontrol butonlarını göstermeyelim
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.webInstructions}>
+        <ThemedText>
+          Use WASD or Arrow keys to control the snake
+        </ThemedText>
+      </View>
+    );
+  }
+
+  // Mobil platformlar için dokunmatik kontroller
   return (
     <View style={styles.container}>
       {/* Up Button */}
@@ -62,6 +108,10 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  webInstructions: {
+    padding: 20,
+    alignItems: 'center',
   },
   row: {
     flexDirection: 'row',
