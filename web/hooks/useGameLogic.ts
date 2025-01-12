@@ -35,7 +35,7 @@ export function useGameLogic(gridSize: number) {
 
   const generateFood = useCallback((): FoodType => {
     const isSpecial = Math.random() < 0.2;
-    const SPECIAL_FOOD_DURATION = 30000; // 30 saniye
+    const SPECIAL_FOOD_DURATION = 15000; // 15 saniye
 
     return {
       position: {

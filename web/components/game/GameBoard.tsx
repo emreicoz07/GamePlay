@@ -23,7 +23,7 @@ export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
   const formatTimeLeft = (ms?: number) => {
     if (!ms) return '';
     const seconds = Math.ceil(ms / 1000);
-    return `${seconds}s`;
+    return `${seconds}`;
   };
 
   return (
@@ -46,10 +46,10 @@ export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
         }
       ]}>
         {/* Özel yem için geri sayım göstergesi */}
-        {food.type === 'special' && food.timeLeft && (
+        {food.type === 'special' && food.expiresAt && (
           <View style={styles.countdown}>
             <ThemedText style={styles.countdownText}>
-              {formatTimeLeft(food.timeLeft)}
+              {formatTimeLeft(food.expiresAt - Date.now())}
             </ThemedText>
           </View>
         )}
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countdownText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#FFD700',
   },
