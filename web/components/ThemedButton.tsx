@@ -39,7 +39,6 @@ export function ThemedButton({
     : variant === 'primary'
     ? colors.textPrimary
     : colors.textSecondary;
-
   return (
     <TouchableOpacity
       onPress={onPress}

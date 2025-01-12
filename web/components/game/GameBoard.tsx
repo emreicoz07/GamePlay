@@ -3,7 +3,6 @@ import { View, StyleSheet, Platform } from 'react-native';
 import Animated, { 
   useAnimatedStyle, 
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -31,71 +30,82 @@ const SnakeSegment = React.memo(({ segment, index, cellSize }: {
   index: number; 
   cellSize: number; 
 }) => {
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: withSpring(segment.x * cellSize, {
-          mass: 0.2,
-          damping: 8,
-          stiffness: 60,
-          overshootClamping: false,
-          restDisplacementThreshold: 0.0001,
-          restSpeedThreshold: 0.0001,
-          velocity: 20,
-        }),
-      },
-      {
-        translateY: withSpring(segment.y * cellSize, {
-          mass: 0.2,
-          damping: 8,
-          stiffness: 60,
-          overshootClamping: false,
-          restDisplacementThreshold: 0.0001,
-          restSpeedThreshold: 0.0001,
-          velocity: 20,
-        }),
-      },
-      {
-        scale: withSpring(index === 0 ? 1.1 : 0.95 - index * 0.01, {
-          mass: 0.1,
-          damping: 5,
-          stiffness: 40,
-        }),
-      },
-      {
-        rotate: withSpring(
-          `${Math.atan2(
-            segment.y - (index > 0 ? segment.y : segment.y - 1),
-            segment.x - (index > 0 ? segment.x : segment.x - 1)
-          )}rad`,
-          {
-            mass: 0.1,
-            damping: 5,
-            stiffness: 40,
-          }
-        ),
-      },
-    ],
-  }), [segment.x, segment.y, index, cellSize]);
+  const colorScheme = useColorScheme() ?? 'light';
+  
+  const animatedStyle = useAnimatedStyle(() => {
+    const baseStyle = {
+      width: cellSize,
+      height: cellSize,
+      borderRadius: cellSize / 2,
+      backgroundColor: index === 0 ? '#48B8A0' : '#5FCFB6',
+      position: 'absolute' as const,
+      transform: [
+        { translateX: withSpring(segment.x * cellSize) },
+        { translateY: withSpring(segment.y * cellSize) },
+        { scale: withSpring(index === 0 ? 1.1 : 0.95 - index * 0.01) }
+      ],
+    };
 
+    // Platform'a özgü gölgelendirme stillerini style objesi içinde birleştir
+    if (Platform.OS === 'web') {
+      return {
+        ...baseStyle,
+        style: {
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+        }
+      };
+    } else {
+      return {
+        ...baseStyle,
+        style: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+          elevation: 4,
+        }
+      };
+    }
+  });
+
+  return <Animated.View style={animatedStyle} />;
+});
+
+// Food bileşeni için de aynı düzeltmeyi yapalım
+const FoodView = React.memo(({ food, cellSize }: { 
+  food: GameBoardProps['food']; 
+  cellSize: number; 
+}) => {
   return (
-    <Animated.View
-      key={getSegmentKey(segment, index)}
-      style={[
-        styles.snakeSegment,
-        {
-          width: cellSize * 0.95,
-          height: cellSize * 0.95,
-          backgroundColor: index === 0 
-            ? '#48B8A0' 
-            : `rgba(95, 207, 182, ${1 - index * 0.03})`,
-          borderRadius: cellSize / 2,
-          position: 'absolute',
-          zIndex: 100 - index,
-        },
-        animatedStyle,
-      ]}
-    />
+    <View style={[
+      styles.food,
+      {
+        width: cellSize,
+        height: cellSize,
+        left: food.position.x * cellSize,
+        top: food.position.y * cellSize,
+        backgroundColor: food.type === 'special' ? '#FFD700' : '#FF7F50',
+        style: Platform.OS === 'web' 
+          ? {
+              boxShadow: food.type === 'special' ? '0 0 10px #FFD700' : 'none'
+            }
+          : {
+              shadowColor: food.type === 'special' ? '#FFD700' : 'transparent',
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: food.type === 'special' ? 0.8 : 0,
+              shadowRadius: food.type === 'special' ? 10 : 0,
+              elevation: food.type === 'special' ? 8 : 0
+            }
+      }
+    ]}>
+      {food.type === 'special' && food.expiresAt && (
+        <View style={styles.countdown}>
+          <ThemedText style={[styles.countdownText, { color: '#FFD700' }]}>
+            {formatTimeLeft(food.expiresAt - Date.now())}
+          </ThemedText>
+        </View>
+      )}
+    </View>
   );
 });
 
@@ -112,44 +122,24 @@ export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
   };
 
   return (
-    <View style={[styles.board, { width: size, height: size, backgroundColor }]}>
-      {/* Yem */}
-      <View style={[
-        styles.food,
-        {
-          width: cellSize,
-          height: cellSize,
-          left: food.position.x * cellSize,
-          top: food.position.y * cellSize,
-          backgroundColor: food.type === 'special' ? '#FFD700' : '#FF7F50',
-          ...Platform.select({
-            web: {
-              boxShadow: food.type === 'special' 
-                ? '0 0 10px #FFD700'
-                : 'none'
-            },
-            default: {
-              // Mobil platformlar için mevcut shadow özellikleri
-              shadowColor: food.type === 'special' ? '#FFD700' : 'transparent',
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: food.type === 'special' ? 0.8 : 0,
-              shadowRadius: food.type === 'special' ? 10 : 0,
+    <View style={[
+      styles.board,
+      { 
+        width: size, 
+        height: size, 
+        backgroundColor,
+        style: Platform.OS === 'web'
+          ? { boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }
+          : {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 6,
+              elevation: 6,
             }
-          }),
-          transform: [{ scale: food.type === 'special' ? 1.2 : 1 }],
-        }
-      ]}>
-        {/* Özel yem için geri sayım göstergesi */}
-        {food.type === 'special' && food.expiresAt && (
-          <View style={styles.countdown}>
-            <ThemedText style={styles.countdownText}>
-              {formatTimeLeft(food.expiresAt - Date.now())}
-            </ThemedText>
-          </View>
-        )}
-      </View>
-
-      {/* Yılan - şimdi ayrı bileşen kullanıyoruz */}
+      }
+    ]}>
+      <FoodView food={food} cellSize={cellSize} />
       {snake.map((segment, index) => (
         <SnakeSegment
           key={getSegmentKey(segment, index)}
@@ -165,24 +155,13 @@ export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
 const styles = StyleSheet.create({
   board: {
     position: 'relative',
-    borderRadius: 8,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   food: {
     position: 'absolute',
     borderRadius: 100,
     zIndex: 50,
-  },
-  snakeSegment: {
-    position: 'absolute',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   countdown: {
     position: 'absolute',
@@ -191,8 +170,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countdownText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 'bold',
-    color: '#FFD700',
-  },
+  }
 }); 
