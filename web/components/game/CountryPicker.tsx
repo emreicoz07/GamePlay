@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { StyleSheet, Modal, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Modal, FlatList, TouchableOpacity, Platform } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/ui/Button';
+import { CountryFlag } from './CountryFlag';
 
-// This would typically come from an API or constants file
 const COUNTRIES = [
   { code: 'US', name: 'United States' },
   { code: 'GB', name: 'United Kingdom' },
   { code: 'FR', name: 'France' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'TR', name: 'Turkey' },
   // Add more countries...
 ];
 
@@ -19,22 +21,28 @@ type CountryPickerProps = {
 
 export function CountryPicker({ selectedCountry, onSelectCountry }: CountryPickerProps) {
   const [modalVisible, setModalVisible] = useState(false);
-
-  const selectedCountryName = COUNTRIES.find(c => c.code === selectedCountry)?.name;
+  const selectedCountryData = COUNTRIES.find(c => c.code === selectedCountry);
 
   return (
     <>
-      <Button 
+      <TouchableOpacity 
         onPress={() => setModalVisible(true)}
-        style={styles.button}
+        style={styles.pickerButton}
       >
-        {selectedCountryName || 'Select Country'}
-      </Button>
+        <ThemedView style={styles.selectedCountryContainer}>
+          {selectedCountryData && (
+            <CountryFlag countryCode={selectedCountry} size={24} />
+          )}
+          <ThemedText style={styles.buttonText}>
+            {selectedCountryData ? selectedCountryData.name : "Select Country"}
+          </ThemedText>
+        </ThemedView>
+      </TouchableOpacity>
 
       <Modal
         visible={modalVisible}
-        animationType="slide"
         transparent={true}
+        animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
         <ThemedView style={styles.modalContainer}>
@@ -54,11 +62,13 @@ export function CountryPicker({ selectedCountry, onSelectCountry }: CountryPicke
                   }}
                   style={styles.countryItem}
                 >
-                  <ThemedText>
+                  <CountryFlag countryCode={item.code} size={24} />
+                  <ThemedText style={styles.countryName}>
                     {item.name}
                   </ThemedText>
                 </TouchableOpacity>
               )}
+              style={styles.countryList}
             />
 
             <Button 
@@ -75,32 +85,62 @@ export function CountryPicker({ selectedCountry, onSelectCountry }: CountryPicke
 }
 
 const styles = StyleSheet.create({
-  button: {
+  pickerButton: {
     width: '100%',
-    marginBottom: 20,
+    height: 50,
+    backgroundColor: '#2D3748',
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderRadius: 8,
+  },
+  selectedCountryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 15,
+    height: '100%',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
   },
   modalContent: {
-    width: '80%',
+    width: Platform.OS === 'web' ? 400 : '90%',
     maxHeight: '80%',
+    backgroundColor: '#1A1D21',
+    borderRadius: 12,
     padding: 20,
-    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#374151',
   },
   modalTitle: {
-    marginBottom: 20,
     textAlign: 'center',
+    marginBottom: 20,
+    color: '#FFFFFF',
+  },
+  countryList: {
+    maxHeight: 300,
   },
   countryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 15,
+    gap: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#374151',
+  },
+  countryName: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
   closeButton: {
     marginTop: 20,
+    backgroundColor: '#48B8A0',
   },
 }); 
