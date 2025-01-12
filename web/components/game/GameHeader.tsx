@@ -1,66 +1,82 @@
-import { StyleSheet, View, Platform } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
-import { Button } from '@/components/ui/Button';
-import { CountryFlag } from '@/components/game/CountryFlag';
+import React from 'react';
+import { View, StyleSheet, Image, ViewStyle } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ThemedText } from '../ThemedText';
+import { ThemedButton } from '../ThemedButton';
 
-type GameHeaderProps = {
+interface GameHeaderProps {
   score: number;
   countryCode: string;
   isPaused: boolean;
   onPause: () => void;
-};
+}
 
 export function GameHeader({ score, countryCode, isPaused, onPause }: GameHeaderProps) {
+  const router = useRouter();
+
+  const exitButtonStyle: ViewStyle = {
+    ...styles.button,
+    backgroundColor: '#ff4444',
+  };
+
   return (
-    <View style={[
-      styles.container,
-      Platform.OS !== 'web' && styles.mobileContainer
-    ]}>
+    <View style={styles.header}>
       <View style={styles.scoreContainer}>
-        <ThemedText type="subtitle">Score: {score}</ThemedText>
-        <CountryFlag countryCode={countryCode} size={24} />
+        <ThemedText style={styles.score}>Score: {score}</ThemedText>
+        {countryCode && (
+          <Image
+            source={{ uri: `https://flagcdn.com/w40/${countryCode.toLowerCase()}.png` }}
+            style={styles.flag}
+          />
+        )}
       </View>
       
-      <Button 
-        onPress={onPause}
-        style={[
-          styles.pauseButton,
-          Platform.OS !== 'web' && styles.mobilePauseButton
-        ]}
-      >
-        {isPaused ? 'Resume' : 'Pause'}
-      </Button>
+      <View style={styles.buttonContainer}>
+        <ThemedButton
+          title={isPaused ? "Devam Et" : "Duraklat"}
+          onPress={onPause}
+          variant="secondary"
+          style={styles.button}
+        />
+        <ThemedButton
+          title="Çıkış"
+          onPress={() => router.push('/')}
+          variant="secondary"
+          style={exitButtonStyle}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    width: '100%',
+    paddingVertical: 10,
     marginBottom: 20,
-  },
-  mobileContainer: {
-    marginTop: 10,
-    paddingHorizontal: 15,
-    paddingTop: 35,
-    paddingBottom: 10,
   },
   scoreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  pauseButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  score: {
+    fontSize: 24,
+    fontWeight: 'bold',
   },
-  mobilePauseButton: {
-    backgroundColor: '#48B8A0',
-    minWidth: 70,
-    height: 36,
-    borderRadius: 6,
+  flag: {
+    width: 30,
+    height: 20,
+    borderRadius: 4,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  button: {
+    minWidth: 100,
   },
 }); 
