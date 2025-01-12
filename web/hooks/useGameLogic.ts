@@ -1,32 +1,75 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export type Point = {
+type Position = {
   x: number;
   y: number;
 };
 
-export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+type FoodType = {
+  position: Position;
+  type: 'regular' | 'special';
+  expiresAt?: number;
+  timeLeft?: number; // Geri sayım için kalan süre
+};
 
 export function useGameLogic(gridSize: number) {
-  const [snake, setSnake] = useState<Point[]>([{ x: 10, y: 10 }]);
-  const [food, setFood] = useState<Point>({ x: 5, y: 5 });
-  const [direction, setDirection] = useState<Direction>('RIGHT');
+  const [snake, setSnake] = useState<Position[]>([{ x: 5, y: 5 }]);
+  const [food, setFood] = useState<FoodType>({ 
+    position: { x: 10, y: 10 }, 
+    type: 'regular' 
+  });
   const [score, setScore] = useState(0);
+  const [direction, setDirection] = useState<'UP' | 'DOWN' | 'LEFT' | 'RIGHT'>('RIGHT');
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [gameInterval, setGameInterval] = useState<NodeJS.Timeout>();
+  const [gameInterval, setGameInterval] = useState<NodeJS.Timeout | null>(null);
 
-  const generateFood = useCallback(() => {
-    const newFood = {
-      x: Math.floor(Math.random() * gridSize),
-      y: Math.floor(Math.random() * gridSize),
+  // Yılanın kendi kendine çarpışma kontrolü
+  const checkCollision = useCallback((head: Position, body: Position[]) => {
+    return body.some((segment, index) => {
+      // Baş hariç diğer segmentlerle çarpışma kontrolü
+      if (index === 0) return false;
+      return segment.x === head.x && segment.y === head.y;
+    });
+  }, []);
+
+  const generateFood = useCallback((): FoodType => {
+    const isSpecial = Math.random() < 0.2;
+    const SPECIAL_FOOD_DURATION = 30000; // 30 saniye
+
+    return {
+      position: {
+        x: Math.floor(Math.random() * gridSize),
+        y: Math.floor(Math.random() * gridSize)
+      },
+      type: isSpecial ? 'special' : 'regular',
+      expiresAt: isSpecial ? Date.now() + SPECIAL_FOOD_DURATION : undefined,
+      timeLeft: isSpecial ? SPECIAL_FOOD_DURATION : undefined
     };
-    // Ensure food doesn't spawn on snake
-    if (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y)) {
-      return generateFood();
+  }, [gridSize]);
+
+  // Özel yem için geri sayım
+  useEffect(() => {
+    let countdownInterval: NodeJS.Timeout;
+
+    if (food.type === 'special' && food.expiresAt) {
+      countdownInterval = setInterval(() => {
+        const timeLeft = food.expiresAt! - Date.now();
+        
+        if (timeLeft <= 0) {
+          setFood(generateFood());
+          clearInterval(countdownInterval);
+        } else {
+          setFood(prev => ({
+            ...prev,
+            timeLeft: Math.max(0, timeLeft)
+          }));
+        }
+      }, 1000);
+
+      return () => clearInterval(countdownInterval);
     }
-    return newFood;
-  }, [snake, gridSize]);
+  }, [food.type, food.expiresAt, generateFood]);
 
   const moveSnake = useCallback(() => {
     if (isPaused || isGameOver) return;
@@ -35,7 +78,6 @@ export function useGameLogic(gridSize: number) {
       const head = currentSnake[0];
       const newHead = { ...head };
 
-      // Calculate new head position
       switch (direction) {
         case 'UP':
           newHead.y = (newHead.y - 1 + gridSize) % gridSize;
@@ -51,59 +93,61 @@ export function useGameLogic(gridSize: number) {
           break;
       }
 
-      // Check for collision with self
-      if (currentSnake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
+      // Yeni kafa pozisyonunda çarpışma kontrolü
+      if (checkCollision(newHead, currentSnake)) {
         setIsGameOver(true);
         return currentSnake;
       }
 
-      const newSnake = [newHead, ...currentSnake];
-
-      // Check if food is eaten
-      if (newHead.x === food.x && newHead.y === food.y) {
-        setScore(s => s + 1);
+      // Yem kontrolü
+      if (newHead.x === food.position.x && newHead.y === food.position.y) {
+        const points = food.type === 'special' ? 5 : 1;
+        setScore(s => s + points);
         setFood(generateFood());
-      } else {
-        newSnake.pop(); // Remove tail if no food eaten
+        return [newHead, ...currentSnake];
       }
 
-      return newSnake;
+      return [newHead, ...currentSnake.slice(0, -1)];
     });
-  }, [direction, food, generateFood, gridSize, isGameOver, isPaused]);
+  }, [direction, food, generateFood, gridSize, isPaused, isGameOver, checkCollision]);
+
+  useEffect(() => {
+    if (!isPaused && !isGameOver) {
+      const interval = setInterval(moveSnake, 150);
+      setGameInterval(interval);
+      return () => clearInterval(interval);
+    }
+    return undefined;
+  }, [isPaused, isGameOver, moveSnake]);
 
   const startGame = useCallback(() => {
-    if (gameInterval) clearInterval(gameInterval);
-    const interval = setInterval(moveSnake, 150); // Adjust speed here
-    setGameInterval(interval);
-  }, [moveSnake]);
-
-  const pauseGame = useCallback(() => {
-    setIsPaused(true);
-    if (gameInterval) clearInterval(gameInterval);
-  }, [gameInterval]);
-
-  const resumeGame = useCallback(() => {
-    setIsPaused(false);
-    startGame();
-  }, [startGame]);
-
-  const resetGame = useCallback(() => {
-    setSnake([{ x: 10, y: 10 }]);
+    setSnake([{ x: 5, y: 5 }]);
     setFood(generateFood());
     setDirection('RIGHT');
     setScore(0);
     setIsGameOver(false);
     setIsPaused(false);
-    startGame();
-  }, [generateFood, startGame]);
+  }, [generateFood]);
 
-  // Start game on mount
-  useEffect(() => {
+  const pauseGame = useCallback(() => {
+    setIsPaused(true);
+    if (gameInterval) {
+      clearInterval(gameInterval);
+      setGameInterval(null);
+    }
+  }, [gameInterval]);
+
+  const resumeGame = useCallback(() => {
+    setIsPaused(false);
+  }, []);
+
+  const resetGame = useCallback(() => {
+    if (gameInterval) {
+      clearInterval(gameInterval);
+      setGameInterval(null);
+    }
     startGame();
-    return () => {
-      if (gameInterval) clearInterval(gameInterval);
-    };
-  }, [startGame]);
+  }, [gameInterval, startGame]);
 
   return {
     snake,

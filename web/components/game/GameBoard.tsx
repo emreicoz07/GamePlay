@@ -1,60 +1,74 @@
 import { View, StyleSheet } from 'react-native';
-import type { Point } from '@/hooks/useGameLogic';
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { ThemedText } from '@/components/ThemedText';
 
 type GameBoardProps = {
   size: number;
   gridSize: number;
-  snake: Point[];
-  food: Point;
+  snake: Array<{ x: number; y: number }>;
+  food: {
+    position: { x: number; y: number };
+    type: 'regular' | 'special';
+    expiresAt?: number;
+  };
 };
 
 export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
-  const backgroundColor = useThemeColor({}, 'gridBackground');
-  const borderColor = useThemeColor({}, 'border');
   const cellSize = size / gridSize;
+  const colorScheme = useColorScheme() ?? 'light';
+  const backgroundColor = Colors[colorScheme].gridBackground;
+
+  // Geri sayım süresini formatlama
+  const formatTimeLeft = (ms?: number) => {
+    if (!ms) return '';
+    const seconds = Math.ceil(ms / 1000);
+    return `${seconds}s`;
+  };
 
   return (
-    <View style={[
-      styles.board, 
-      { 
-        width: size, 
-        height: size,
-        backgroundColor,
-        borderColor,
-      }
-    ]}>
-      {/* Render food */}
-      <View
-        style={[
-          styles.food,
-          {
-            width: cellSize,
-            height: cellSize,
-            backgroundColor: '#FF7F50', // Accent Orange for food
-            transform: [
-              { translateX: food.x * cellSize },
-              { translateY: food.y * cellSize },
-            ],
-          },
-        ]}
-      />
+    <View style={[styles.board, { width: size, height: size, backgroundColor }]}>
+      {/* Yem */}
+      <View style={[
+        styles.food,
+        {
+          width: cellSize,
+          height: cellSize,
+          left: food.position.x * cellSize,
+          top: food.position.y * cellSize,
+          backgroundColor: food.type === 'special' ? '#FFD700' : '#FF7F50',
+          // Özel yem için parıldama animasyonu
+          shadowColor: food.type === 'special' ? '#FFD700' : 'transparent',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: food.type === 'special' ? 0.8 : 0,
+          shadowRadius: food.type === 'special' ? 10 : 0,
+          transform: [{ scale: food.type === 'special' ? 1.2 : 1 }],
+        }
+      ]}>
+        {/* Özel yem için geri sayım göstergesi */}
+        {food.type === 'special' && food.timeLeft && (
+          <View style={styles.countdown}>
+            <ThemedText style={styles.countdownText}>
+              {formatTimeLeft(food.timeLeft)}
+            </ThemedText>
+          </View>
+        )}
+      </View>
 
-      {/* Render snake */}
+      {/* Yılan */}
       {snake.map((segment, index) => (
         <View
-          key={`${segment.x}-${segment.y}-${index}`}
+          key={`${segment.x}-${segment.y}`}
           style={[
             styles.snakeSegment,
             {
               width: cellSize,
               height: cellSize,
-              backgroundColor: index === 0 ? '#48B8A0' : '#5FCFB6', // Snake Head/Body colors
-              transform: [
-                { translateX: segment.x * cellSize },
-                { translateY: segment.y * cellSize },
-              ],
-            },
+              left: segment.x * cellSize,
+              top: segment.y * cellSize,
+              backgroundColor: index === 0 ? '#48B8A0' : '#5FCFB6',
+              borderRadius: cellSize / 2,
+            }
           ]}
         />
       ))}
@@ -64,15 +78,26 @@ export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
 
 const styles = StyleSheet.create({
   board: {
-    borderWidth: 2,
     position: 'relative',
-  },
-  snakeSegment: {
-    position: 'absolute',
-    borderRadius: 4,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   food: {
     position: 'absolute',
     borderRadius: 8,
+  },
+  snakeSegment: {
+    position: 'absolute',
+  },
+  countdown: {
+    position: 'absolute',
+    top: -20,
+    width: '100%',
+    alignItems: 'center',
+  },
+  countdownText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#FFD700',
   },
 }); 
