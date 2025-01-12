@@ -1,97 +1,91 @@
-import { StyleSheet, Modal, View, Platform } from 'react-native';
-import { router } from 'expo-router';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { Button } from '@/components/ui/Button';
-import { CountryFlag } from './CountryFlag';
-import { useThemeColor } from '@/hooks/useThemeColor';
+import React, { useState, useEffect } from 'react';
+import { Modal, StyleSheet, View, TextInput, Alert } from 'react-native';
+import { ThemedView } from '../ThemedView';
+import { ThemedText } from '../ThemedText';
+import { ThemedButton } from '../ThemedButton';
+import { apiService } from '@/services/api';
 
-type GameOverModalProps = {
+interface GameOverModalProps {
   visible: boolean;
   score: number;
-  playerName: string;
-  countryCode: string;
   onRestart: () => void;
-};
+  onClose: () => void;
+  defaultPlayerName: string;
+  countryCode: string;
+}
 
-export function GameOverModal({
-  visible,
-  score,
-  playerName,
-  countryCode,
-  onRestart,
+export function GameOverModal({ 
+  visible, 
+  score, 
+  onRestart, 
+  onClose,
+  defaultPlayerName,
+  countryCode 
 }: GameOverModalProps) {
-  const backgroundColor = useThemeColor({}, 'background');
-  const borderColor = useThemeColor({}, 'border');
+  const [playerName, setPlayerName] = useState(defaultPlayerName);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setPlayerName(defaultPlayerName);
+  }, [defaultPlayerName]);
+
+  const handleSubmitScore = async () => {
+    if (!playerName.trim()) {
+      Alert.alert('Hata', 'Lütfen isminizi girin');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await apiService.submitScore({
+        playerName: playerName.trim(),
+        score,
+        countryCode
+      });
+      
+      Alert.alert('Başarılı', 'Skorunuz kaydedildi!');
+      onClose();
+      onRestart();
+    } catch (error) {
+      console.error('Score submission error:', error);
+      Alert.alert('Hata', 'Skor kaydedilirken bir hata oluştu');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Modal
-      visible={visible}
+      animationType="slide"
       transparent={true}
-      animationType="fade"
+      visible={visible}
+      onRequestClose={onClose}
     >
-      <ThemedView style={styles.container}>
-        <ThemedView 
-          style={[
-            styles.content,
-            { 
-              backgroundColor,
-              borderColor,
-              width: Platform.OS === 'web' ? 400 : '90%',
-              maxWidth: Platform.OS === 'web' ? 400 : '95%',
-            }
-          ]}
-        >
-          {/* Header Section */}
-          <View style={styles.header}>
-            <ThemedText type="title" style={styles.gameOverText}>
-              Game Over!
-            </ThemedText>
-            <ThemedText style={styles.subtitle}>
-              Great effort! Here's how you did:
-            </ThemedText>
-          </View>
+      <ThemedView style={styles.centeredView}>
+        <ThemedView style={styles.modalView}>
+          <ThemedText style={styles.modalTitle}>Oyun Bitti!</ThemedText>
+          <ThemedText style={styles.scoreText}>Skorunuz: {score}</ThemedText>
+          
+          <TextInput
+            style={styles.input}
+            placeholder="İsminizi girin"
+            value={playerName}
+            onChangeText={setPlayerName}
+            maxLength={50}
+            editable={false}
+          />
 
-          {/* Score Section */}
-          <View style={styles.scoreSection}>
-            <View style={styles.scoreCircle}>
-              <ThemedText type="title" style={styles.scoreNumber}>
-                {score}
-              </ThemedText>
-              <ThemedText style={styles.scoreLabel}>POINTS</ThemedText>
-            </View>
-          </View>
-
-          {/* Player Info Section */}
-          <View style={styles.playerInfo}>
-            <ThemedText type="subtitle" style={styles.playerName}>
-              {playerName}
-            </ThemedText>
-            <CountryFlag countryCode={countryCode} size={24} />
-          </View>
-
-          {/* Buttons Section */}
           <View style={styles.buttonContainer}>
-            <Button 
-              onPress={onRestart} 
-              style={[styles.button, styles.primaryButton]}
-            >
-              Play Again
-            </Button>
-            
-            <Button 
-              onPress={() => router.replace('/(game)/leaderboard')}
-              style={[styles.button, styles.secondaryButton]}
-            >
-              View Leaderboard
-            </Button>
-            
-            <Button 
-              onPress={() => router.replace('/(game)')}
-              style={[styles.button, styles.tertiaryButton]}
-            >
-              Exit to Menu
-            </Button>
+            <ThemedButton
+              title="Skoru Kaydet"
+              onPress={handleSubmitScore}
+              disabled={isSubmitting}
+            />
+            <ThemedButton
+              title="Yeniden Başla"
+              onPress={onRestart}
+              variant="secondary"
+            />
           </View>
         </ThemedView>
       </ThemedView>
@@ -100,91 +94,39 @@ export function GameOverModal({
 }
 
 const styles = StyleSheet.create({
-  container: {
+  centeredView: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    padding: Platform.OS === 'web' ? 0 : 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  content: {
-    padding: Platform.OS === 'web' ? 32 : 24,
-    borderRadius: 16,
-    borderWidth: 1,
-    alignItems: 'center',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      },
-      default: {
-        elevation: 5,
-      },
-    }),
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  gameOverText: {
-    fontSize: Platform.OS === 'web' ? 36 : 32,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    opacity: 0.8,
-  },
-  scoreSection: {
-    marginVertical: 24,
+  modalView: {
+    width: '80%',
+    maxWidth: 400,
+    padding: 20,
+    borderRadius: 10,
     alignItems: 'center',
   },
-  scoreCircle: {
-    width: Platform.OS === 'web' ? 120 : 100,
-    height: Platform.OS === 'web' ? 120 : 100,
-    borderRadius: Platform.OS === 'web' ? 60 : 50,
-    backgroundColor: '#48B8A0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Platform.OS === 'web' ? 16 : 12,
-  },
-  scoreNumber: {
-    color: '#FFFFFF',
-    fontSize: 48,
+  modalTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 10,
   },
-  scoreLabel: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  playerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 32,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: 'rgba(72, 184, 160, 0.1)',
-  },
-  playerName: {
+  scoreText: {
     fontSize: 20,
+    marginBottom: 20,
+  },
+  input: {
+    width: '100%',
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 20,
   },
   buttonContainer: {
     width: '100%',
-    gap: Platform.OS === 'web' ? 12 : 8,
-  },
-  button: {
-    width: '100%',
-    paddingVertical: Platform.OS === 'web' ? 12 : 10,
-  },
-  primaryButton: {
-    backgroundColor: '#48B8A0',
-  },
-  secondaryButton: {
-    backgroundColor: '#2A6B9B',
-  },
-  tertiaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#6B7280',
+    gap: 10,
   },
 }); 

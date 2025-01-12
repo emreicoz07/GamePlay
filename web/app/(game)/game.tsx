@@ -8,6 +8,8 @@ import { GameControls } from '@/components/game/GameControls';
 import { GameHeader } from '@/components/game/GameHeader';
 import { GameOverModal } from '@/components/game/GameOverModal';
 import { useGameLogic } from '@/hooks/useGameLogic';
+import { apiService, type LeaderboardEntry } from '@/services/api';
+import { Leaderboard } from '@/components/game/Leaderboard';
 
 // Web için özel boyutlandırma
 const BOARD_SIZE = Platform.OS === 'web' 
@@ -34,6 +36,11 @@ export default function GameScreen() {
     resumeGame,
     resetGame,
   } = useGameLogic(GRID_SIZE);
+
+  // Modal kapatma fonksiyonu
+  const handleCloseModal = () => {
+    resetGame();
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -69,9 +76,7 @@ export default function GameScreen() {
           </View>
 
           <View style={styles.rankingSection}>
-            {/* Burada sıralama bileşeni eklenecek */}
-            <ThemedText type="title">Leaderboard</ThemedText>
-            {/* Sıralama listesi buraya gelecek */}
+            <Leaderboard />
           </View>
         </View>
       ) : (
@@ -108,9 +113,10 @@ export default function GameScreen() {
       <GameOverModal
         visible={isGameOver}
         score={score}
-        playerName={playerName}
-        countryCode={country}
         onRestart={resetGame}
+        onClose={handleCloseModal}
+        defaultPlayerName={playerName}
+        countryCode={country}
       />
     </ThemedView>
   );
@@ -130,12 +136,12 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   gameSection: {
-    flex: 2, // Oyun alanı 2 birim
+    flex: 2,
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   rankingSection: {
-    flex: 1, // Sıralama alanı 1 birim
+    flex: 1,
     padding: 20,
     borderLeftWidth: 1,
     borderLeftColor: '#ccc',
