@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, FlatList, RefreshControl, Image } from 'react-native';
+import { StyleSheet, View, FlatList, RefreshControl, Image, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -41,6 +41,7 @@ export default function LeaderboardScreen() {
         <Image
           source={{ uri: `https://flagcdn.com/w40/${item.countryCode.toLowerCase()}.png` }}
           style={styles.flag}
+          resizeMode="cover"
         />
       </View>
       <ThemedText style={styles.scoreText}>{item.score}</ThemedText>
@@ -88,6 +89,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+      },
+      default: {
+        elevation: 2,
+        shadowColor: 'transparent',
+        shadowOffset: undefined,
+        shadowOpacity: undefined,
+        shadowRadius: undefined,
+      }
+    })
   },
   header: {
     flexDirection: 'row',

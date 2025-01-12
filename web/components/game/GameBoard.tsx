@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import Animated, { 
   useAnimatedStyle, 
   withSpring,
@@ -122,11 +122,20 @@ export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
           left: food.position.x * cellSize,
           top: food.position.y * cellSize,
           backgroundColor: food.type === 'special' ? '#FFD700' : '#FF7F50',
-          // Özel yem için parıldama animasyonu
-          shadowColor: food.type === 'special' ? '#FFD700' : 'transparent',
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: food.type === 'special' ? 0.8 : 0,
-          shadowRadius: food.type === 'special' ? 10 : 0,
+          ...Platform.select({
+            web: {
+              boxShadow: food.type === 'special' 
+                ? '0 0 10px #FFD700'
+                : 'none'
+            },
+            default: {
+              // Mobil platformlar için mevcut shadow özellikleri
+              shadowColor: food.type === 'special' ? '#FFD700' : 'transparent',
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: food.type === 'special' ? 0.8 : 0,
+              shadowRadius: food.type === 'special' ? 10 : 0,
+            }
+          }),
           transform: [{ scale: food.type === 'special' ? 1.2 : 1 }],
         }
       ]}>

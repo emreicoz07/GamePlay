@@ -67,18 +67,40 @@ export function GameOverModal({
       visible={visible}
       onRequestClose={onClose}
     >
-      <ThemedView style={styles.centeredView}>
-        <ThemedView style={[styles.modalView, { backgroundColor: colors.background }]}>
+      <ThemedView 
+        style={[
+          styles.centeredView, 
+          { 
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            pointerEvents: 'auto'
+          }
+        ]}
+      >
+        <ThemedView 
+          style={[
+            styles.modalView, 
+            { 
+              backgroundColor: colors.background,
+              pointerEvents: 'auto'
+            }
+          ]}
+        >
           <ThemedText style={styles.modalTitle}>Oyun Bitti!</ThemedText>
           <ThemedText style={styles.scoreText}>Skorunuz: {score}</ThemedText>
           
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { 
+                backgroundColor: '#fff',
+                pointerEvents: 'auto'
+              }
+            ]}
             placeholder="İsminizi girin"
             value={playerName}
             onChangeText={setPlayerName}
             maxLength={50}
-            editable={false}
+            editable={!isSubmitting}
           />
 
           <View style={styles.buttonContainer}>
@@ -114,17 +136,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...Platform.select({
       web: {
-        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.25)'
+        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)'
       },
       default: {
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 4,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 10,
         elevation: 5,
+        shadowColor: 'transparent',
+        shadowOffset: undefined,
+        shadowOpacity: undefined,
+        shadowRadius: undefined,
       }
     })
   },
