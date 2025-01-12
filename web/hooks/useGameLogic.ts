@@ -113,7 +113,7 @@ export function useGameLogic(gridSize: number) {
 
   useEffect(() => {
     if (!isPaused && !isGameOver) {
-      const interval = setInterval(moveSnake, 150);
+      const interval = setInterval(moveSnake, 100);
       setGameInterval(interval);
       return () => clearInterval(interval);
     }

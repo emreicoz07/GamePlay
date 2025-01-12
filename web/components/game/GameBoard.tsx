@@ -1,4 +1,10 @@
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import Animated, { 
+  useAnimatedStyle, 
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { ThemedText } from '@/components/ThemedText';
@@ -13,6 +19,53 @@ type GameBoardProps = {
     expiresAt?: number;
   };
 };
+
+// Yılan segmentleri için benzersiz key oluşturacak yardımcı fonksiyon
+const getSegmentKey = (segment: { x: number; y: number }, index: number) => {
+  return `snake-${segment.x}-${segment.y}-${index}`;
+};
+
+// Yeni bileşen: Yılan segmenti için
+const SnakeSegment = React.memo(({ 
+  segment, 
+  index, 
+  cellSize 
+}: { 
+  segment: { x: number; y: number }; 
+  index: number; 
+  cellSize: number; 
+}) => {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: withTiming(segment.x * cellSize, {
+          duration: 100,
+        }),
+      },
+      {
+        translateY: withTiming(segment.y * cellSize, {
+          duration: 100,
+        }),
+      },
+    ],
+  }));
+
+  return (
+    <Animated.View
+      key={getSegmentKey(segment, index)}
+      style={[
+        styles.snakeSegment,
+        {
+          width: cellSize,
+          height: cellSize,
+          backgroundColor: index === 0 ? '#48B8A0' : '#5FCFB6',
+          borderRadius: cellSize / 2,
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+});
 
 export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
   const cellSize = size / gridSize;
@@ -55,21 +108,13 @@ export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
         )}
       </View>
 
-      {/* Yılan */}
+      {/* Yılan - şimdi ayrı bileşen kullanıyoruz */}
       {snake.map((segment, index) => (
-        <View
-          key={`${segment.x}-${segment.y}`}
-          style={[
-            styles.snakeSegment,
-            {
-              width: cellSize,
-              height: cellSize,
-              left: segment.x * cellSize,
-              top: segment.y * cellSize,
-              backgroundColor: index === 0 ? '#48B8A0' : '#5FCFB6',
-              borderRadius: cellSize / 2,
-            }
-          ]}
+        <SnakeSegment
+          key={getSegmentKey(segment, index)}
+          segment={segment}
+          index={index}
+          cellSize={cellSize}
         />
       ))}
     </View>
@@ -88,6 +133,8 @@ const styles = StyleSheet.create({
   },
   snakeSegment: {
     position: 'absolute',
+    left: 0,
+    top: 0,
   },
   countdown: {
     position: 'absolute',
