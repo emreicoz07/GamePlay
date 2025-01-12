@@ -28,7 +28,13 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>
+      <ThemedText 
+        type="title" 
+        style={[
+          styles.title,
+          Platform.OS !== 'web' && styles.mobileTitle
+        ]}
+      >
         Snake Game
       </ThemedText>
 
@@ -63,13 +69,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#1A1D21', // Dark mode background
   },
   title: {
     fontSize: 48,
     marginBottom: 60,
     color: '#FFFFFF',
     textAlign: 'center',
+  },
+  mobileTitle: {
+    fontSize: 42,
+    marginBottom: 40,
+    paddingHorizontal: 20,
+    lineHeight: 50,
   },
   formContainer: {
     width: Platform.OS === 'web' ? 400 : '100%',
@@ -89,7 +100,7 @@ const styles = StyleSheet.create({
   startButton: {
     width: '100%',
     height: 50,
-    backgroundColor: '#48B8A0', // Secondary Teal from design system
+    backgroundColor: '#48B8A0',
     marginTop: 20,
   },
 }); 

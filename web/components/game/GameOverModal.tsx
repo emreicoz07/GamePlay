@@ -37,7 +37,8 @@ export function GameOverModal({
             { 
               backgroundColor,
               borderColor,
-              width: Platform.OS === 'web' ? 400 : '80%',
+              width: Platform.OS === 'web' ? 400 : '90%',
+              maxWidth: Platform.OS === 'web' ? 400 : '95%',
             }
           ]}
         >
@@ -79,14 +80,14 @@ export function GameOverModal({
             </Button>
             
             <Button 
-              onPress={() => router.push('/(game)/leaderboard')}
+              onPress={() => router.replace('/(game)/leaderboard')}
               style={[styles.button, styles.secondaryButton]}
             >
               View Leaderboard
             </Button>
             
             <Button 
-              onPress={() => router.back()} 
+              onPress={() => router.replace('/(game)')}
               style={[styles.button, styles.tertiaryButton]}
             >
               Exit to Menu
@@ -104,9 +105,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    padding: Platform.OS === 'web' ? 0 : 16,
   },
   content: {
-    padding: 32,
+    padding: Platform.OS === 'web' ? 32 : 24,
     borderRadius: 16,
     borderWidth: 1,
     alignItems: 'center',
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   gameOverText: {
-    fontSize: 36,
+    fontSize: Platform.OS === 'web' ? 36 : 32,
     marginBottom: 8,
   },
   subtitle: {
@@ -136,13 +138,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scoreCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#48B8A0', // Secondary Teal
+    width: Platform.OS === 'web' ? 120 : 100,
+    height: Platform.OS === 'web' ? 120 : 100,
+    borderRadius: Platform.OS === 'web' ? 60 : 50,
+    backgroundColor: '#48B8A0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Platform.OS === 'web' ? 16 : 12,
   },
   scoreNumber: {
     color: '#FFFFFF',
@@ -161,27 +163,28 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     padding: 12,
     borderRadius: 8,
-    backgroundColor: 'rgba(72, 184, 160, 0.1)', // Secondary Teal with opacity
+    backgroundColor: 'rgba(72, 184, 160, 0.1)',
   },
   playerName: {
     fontSize: 20,
   },
   buttonContainer: {
     width: '100%',
-    gap: 12,
+    gap: Platform.OS === 'web' ? 12 : 8,
   },
   button: {
     width: '100%',
+    paddingVertical: Platform.OS === 'web' ? 12 : 10,
   },
   primaryButton: {
-    backgroundColor: '#48B8A0', // Secondary Teal
+    backgroundColor: '#48B8A0',
   },
   secondaryButton: {
-    backgroundColor: '#2A6B9B', // Primary Blue
+    backgroundColor: '#2A6B9B',
   },
   tertiaryButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#6B7280', // Muted Text
+    borderColor: '#6B7280',
   },
 }); 

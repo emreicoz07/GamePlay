@@ -14,23 +14,8 @@ export default function GameLayout() {
         name="game" 
         options={{ 
           headerShown: false,
+          title: "Playing Snake",
           presentation: 'fullScreenModal'
-        }} 
-      />
-      <Stack.Screen 
-        name="leaderboard" 
-        options={{ 
-          title: "Leaderboard",
-          presentation: 'modal',
-          headerShown: true,
-          headerBackTitle: "Back",
-        }} 
-      />
-      <Stack.Screen 
-        name="settings" 
-        options={{ 
-          title: "Settings",
-          presentation: 'modal'
         }} 
       />
     </Stack>
