@@ -74,9 +74,9 @@ export function useGameLogic(gridSize: number) {
 
   // Yılan hızını yönetmek için yeni mantık
   const calculateGameSpeed = useCallback((length: number) => {
-    const baseSpeed = 180; // Başlangıç hızı biraz daha yavaş
-    const speedIncrease = Math.floor((length - 1) / 3) * 8; // Daha sık ve küçük artışlar
-    return Math.max(80, baseSpeed - speedIncrease); // Minimum hız 80ms
+    const baseSpeed = 150; // Başlangıç hızı daha yavaş
+    const speedIncrease = Math.floor((length - 1) / 4) * 5; // Daha yumuşak hız artışı
+    return Math.max(70, baseSpeed - speedIncrease); // Minimum hız 70ms
   }, []);
 
   // Hareket mantığını güncelle
@@ -127,7 +127,13 @@ export function useGameLogic(gridSize: number) {
       const speed = calculateGameSpeed(snake.length);
       const interval = setInterval(moveSnake, speed);
       setGameInterval(interval);
-      return () => clearInterval(interval);
+      
+      // Temizleme işlemi
+      return () => {
+        if (interval) {
+          clearInterval(interval);
+        }
+      };
     }
     return undefined;
   }, [isPaused, isGameOver, moveSnake, snake.length, calculateGameSpeed]);

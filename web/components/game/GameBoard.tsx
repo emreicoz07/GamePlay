@@ -35,33 +35,48 @@ const SnakeSegment = React.memo(({ segment, index, cellSize }: {
     transform: [
       {
         translateX: withSpring(segment.x * cellSize, {
-          mass: 0.3,
-          damping: 12,
-          stiffness: 100,
+          mass: 0.2,
+          damping: 8,
+          stiffness: 60,
           overshootClamping: false,
-          restDisplacementThreshold: 0.001,
-          restSpeedThreshold: 0.001,
+          restDisplacementThreshold: 0.0001,
+          restSpeedThreshold: 0.0001,
+          velocity: 20,
         }),
       },
       {
         translateY: withSpring(segment.y * cellSize, {
-          mass: 0.3,
-          damping: 12,
-          stiffness: 100,
+          mass: 0.2,
+          damping: 8,
+          stiffness: 60,
           overshootClamping: false,
-          restDisplacementThreshold: 0.001,
-          restSpeedThreshold: 0.001,
+          restDisplacementThreshold: 0.0001,
+          restSpeedThreshold: 0.0001,
+          velocity: 20,
         }),
       },
       {
-        scale: withSpring(index === 0 ? 1.1 : 0.9 - index * 0.02, {
-          mass: 0.2,
-          damping: 10,
-          stiffness: 80,
+        scale: withSpring(index === 0 ? 1.1 : 0.95 - index * 0.01, {
+          mass: 0.1,
+          damping: 5,
+          stiffness: 40,
         }),
       },
+      {
+        rotate: withSpring(
+          `${Math.atan2(
+            segment.y - (index > 0 ? segment.y : segment.y - 1),
+            segment.x - (index > 0 ? segment.x : segment.x - 1)
+          )}rad`,
+          {
+            mass: 0.1,
+            damping: 5,
+            stiffness: 40,
+          }
+        ),
+      },
     ],
-  }));
+  }), [segment.x, segment.y, index, cellSize]);
 
   return (
     <Animated.View
@@ -73,7 +88,7 @@ const SnakeSegment = React.memo(({ segment, index, cellSize }: {
           height: cellSize * 0.95,
           backgroundColor: index === 0 
             ? '#48B8A0' 
-            : `rgba(95, 207, 182, ${1 - index * 0.05})`,
+            : `rgba(95, 207, 182, ${1 - index * 0.03})`,
           borderRadius: cellSize / 2,
           position: 'absolute',
           zIndex: 100 - index,
