@@ -23,6 +23,7 @@ export function useGameLogic(gridSize: number) {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [gameInterval, setGameInterval] = useState<NodeJS.Timeout | null>(null);
+  const [gameSpeed, setGameSpeed] = useState(200); // Başlangıç hızı (ms)
 
   // Yılanın kendi kendine çarpışma kontrolü
   const checkCollision = useCallback((head: Position, body: Position[]) => {
@@ -71,6 +72,14 @@ export function useGameLogic(gridSize: number) {
     }
   }, [food.type, food.expiresAt, generateFood]);
 
+  // Yılan hızını yönetmek için yeni mantık
+  const calculateGameSpeed = useCallback((length: number) => {
+    const baseSpeed = 180; // Başlangıç hızı biraz daha yavaş
+    const speedIncrease = Math.floor((length - 1) / 3) * 8; // Daha sık ve küçük artışlar
+    return Math.max(80, baseSpeed - speedIncrease); // Minimum hız 80ms
+  }, []);
+
+  // Hareket mantığını güncelle
   const moveSnake = useCallback(() => {
     if (isPaused || isGameOver) return;
 
@@ -78,6 +87,7 @@ export function useGameLogic(gridSize: number) {
       const head = currentSnake[0];
       const newHead = { ...head };
 
+      // Yeni kafa pozisyonu hesaplama
       switch (direction) {
         case 'UP':
           newHead.y = (newHead.y - 1 + gridSize) % gridSize;
@@ -93,7 +103,6 @@ export function useGameLogic(gridSize: number) {
           break;
       }
 
-      // Yeni kafa pozisyonunda çarpışma kontrolü
       if (checkCollision(newHead, currentSnake)) {
         setIsGameOver(true);
         return currentSnake;
@@ -104,21 +113,24 @@ export function useGameLogic(gridSize: number) {
         const points = food.type === 'special' ? 5 : 1;
         setScore(s => s + points);
         setFood(generateFood());
-        return [newHead, ...currentSnake];
+        return [newHead, ...currentSnake]; // Yemi yediğinde uzama
       }
 
+      // Normal hareket - kuyruğu kaydır
       return [newHead, ...currentSnake.slice(0, -1)];
     });
   }, [direction, food, generateFood, gridSize, isPaused, isGameOver, checkCollision]);
 
+  // Oyun döngüsü
   useEffect(() => {
     if (!isPaused && !isGameOver) {
-      const interval = setInterval(moveSnake, 100);
+      const speed = calculateGameSpeed(snake.length);
+      const interval = setInterval(moveSnake, speed);
       setGameInterval(interval);
       return () => clearInterval(interval);
     }
     return undefined;
-  }, [isPaused, isGameOver, moveSnake]);
+  }, [isPaused, isGameOver, moveSnake, snake.length, calculateGameSpeed]);
 
   const startGame = useCallback(() => {
     setSnake([{ x: 5, y: 5 }]);

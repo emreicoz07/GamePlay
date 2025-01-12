@@ -26,11 +26,7 @@ const getSegmentKey = (segment: { x: number; y: number }, index: number) => {
 };
 
 // Yeni bileşen: Yılan segmenti için
-const SnakeSegment = React.memo(({ 
-  segment, 
-  index, 
-  cellSize 
-}: { 
+const SnakeSegment = React.memo(({ segment, index, cellSize }: { 
   segment: { x: number; y: number }; 
   index: number; 
   cellSize: number; 
@@ -38,13 +34,30 @@ const SnakeSegment = React.memo(({
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateX: withTiming(segment.x * cellSize, {
-          duration: 100,
+        translateX: withSpring(segment.x * cellSize, {
+          mass: 0.3,
+          damping: 12,
+          stiffness: 100,
+          overshootClamping: false,
+          restDisplacementThreshold: 0.001,
+          restSpeedThreshold: 0.001,
         }),
       },
       {
-        translateY: withTiming(segment.y * cellSize, {
-          duration: 100,
+        translateY: withSpring(segment.y * cellSize, {
+          mass: 0.3,
+          damping: 12,
+          stiffness: 100,
+          overshootClamping: false,
+          restDisplacementThreshold: 0.001,
+          restSpeedThreshold: 0.001,
+        }),
+      },
+      {
+        scale: withSpring(index === 0 ? 1.1 : 0.9 - index * 0.02, {
+          mass: 0.2,
+          damping: 10,
+          stiffness: 80,
         }),
       },
     ],
@@ -56,10 +69,14 @@ const SnakeSegment = React.memo(({
       style={[
         styles.snakeSegment,
         {
-          width: cellSize,
-          height: cellSize,
-          backgroundColor: index === 0 ? '#48B8A0' : '#5FCFB6',
+          width: cellSize * 0.95,
+          height: cellSize * 0.95,
+          backgroundColor: index === 0 
+            ? '#48B8A0' 
+            : `rgba(95, 207, 182, ${1 - index * 0.05})`,
           borderRadius: cellSize / 2,
+          position: 'absolute',
+          zIndex: 100 - index,
         },
         animatedStyle,
       ]}
@@ -129,12 +146,19 @@ const styles = StyleSheet.create({
   },
   food: {
     position: 'absolute',
-    borderRadius: 8,
+    borderRadius: 100,
+    zIndex: 50,
   },
   snakeSegment: {
     position: 'absolute',
-    left: 0,
-    top: 0,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   countdown: {
     position: 'absolute',

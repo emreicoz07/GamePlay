@@ -2,9 +2,10 @@ import { ThemedText } from '@/components/ThemedText';
 
 import { StyleSheet, View, TouchableOpacity, Platform } from 'react-native';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import type { Direction } from '@/hooks/useGameLogic';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useThemeColor } from '@/hooks/useThemeColor';
+
+type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
 type GameControlsProps = {
   onDirectionChange: (direction: Direction) => void;
@@ -14,9 +15,29 @@ type GameControlsProps = {
 
 export function GameControls({ onDirectionChange, currentDirection, disabled }: GameControlsProps) {
   const buttonColor = useThemeColor({}, 'tint');
-  const textColor = '#FFFFFF'; // Light Text
+  const textColor = '#FFFFFF';
 
-  // Web platformu için klavye kontrollerini ekleyelim
+  // Yön değişikliği için memoize edilmiş callback'ler
+  const handleDirectionChange = useCallback((direction: Direction) => {
+    if (disabled) return;
+    
+    switch(direction) {
+      case 'UP':
+        if (currentDirection !== 'DOWN') onDirectionChange('UP');
+        break;
+      case 'DOWN':
+        if (currentDirection !== 'UP') onDirectionChange('DOWN');
+        break;
+      case 'LEFT':
+        if (currentDirection !== 'RIGHT') onDirectionChange('LEFT');
+        break;
+      case 'RIGHT':
+        if (currentDirection !== 'LEFT') onDirectionChange('RIGHT');
+        break;
+    }
+  }, [currentDirection, disabled, onDirectionChange]);
+
+  // Platform kontrolü ve klavye olayları
   useEffect(() => {
     if (Platform.OS === 'web') {
       const handleKeyPress = (event: KeyboardEvent) => {
@@ -25,19 +46,19 @@ export function GameControls({ onDirectionChange, currentDirection, disabled }: 
         switch (event.key.toLowerCase()) {
           case 'arrowup':
           case 'w':
-            if (currentDirection !== 'DOWN') onDirectionChange('UP');
+            handleDirectionChange('UP');
             break;
           case 'arrowdown':
           case 's':
-            if (currentDirection !== 'UP') onDirectionChange('DOWN');
+            handleDirectionChange('DOWN');
             break;
           case 'arrowleft':
           case 'a':
-            if (currentDirection !== 'RIGHT') onDirectionChange('LEFT');
+            handleDirectionChange('LEFT');
             break;
           case 'arrowright':
           case 'd':
-            if (currentDirection !== 'LEFT') onDirectionChange('RIGHT');
+            handleDirectionChange('RIGHT');
             break;
         }
       };
@@ -45,7 +66,37 @@ export function GameControls({ onDirectionChange, currentDirection, disabled }: 
       window.addEventListener('keydown', handleKeyPress);
       return () => window.removeEventListener('keydown', handleKeyPress);
     }
-  }, [onDirectionChange, currentDirection, disabled]);
+  }, [handleDirectionChange, disabled]);
+
+  // Dokunmatik butonlar için ortak stil ve davranış
+  const TouchButton = useCallback(({ 
+    direction, 
+    icon 
+  }: { 
+    direction: Direction; 
+    icon: string;
+  }) => (
+    <TouchableOpacity
+      style={[
+        styles.button,
+        { backgroundColor: buttonColor },
+        currentDirection === direction && styles.active
+      ]}
+      onPress={() => handleDirectionChange(direction)}
+      disabled={disabled || (
+        (direction === 'UP' && currentDirection === 'DOWN') ||
+        (direction === 'DOWN' && currentDirection === 'UP') ||
+        (direction === 'LEFT' && currentDirection === 'RIGHT') ||
+        (direction === 'RIGHT' && currentDirection === 'LEFT')
+      )}
+      activeOpacity={0.7}
+      pressRetentionOffset={{ top: 20, left: 20, right: 20, bottom: 20 }}
+      delayPressIn={0}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    >
+      <IconSymbol name={icon as "chevron.up" | "chevron.down" | "chevron.left" | "chevron.right"} size={32} color={textColor} />
+    </TouchableOpacity>
+  ), [buttonColor, currentDirection, disabled, handleDirectionChange, textColor]);
 
   // Web platformunda kontrol butonlarını göstermeyelim
   if (Platform.OS === 'web') {
@@ -58,66 +109,20 @@ export function GameControls({ onDirectionChange, currentDirection, disabled }: 
     );
   }
 
-  // Mobil platformlar için dokunmatik kontroller
   return (
     <View style={styles.container}>
-      {/* Up Button */}
       <View style={styles.row}>
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: buttonColor },
-            currentDirection === 'UP' && styles.active
-          ]}
-          onPress={() => onDirectionChange('UP')}
-          disabled={disabled || currentDirection === 'DOWN'}
-        >
-          <IconSymbol name="chevron.up" size={32} color={textColor} />
-        </TouchableOpacity>
+        <TouchButton direction="UP" icon="chevron.up" />
       </View>
 
-      {/* Left and Right Buttons */}
       <View style={styles.row}>
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: buttonColor },
-            currentDirection === 'LEFT' && styles.active
-          ]}
-          onPress={() => onDirectionChange('LEFT')}
-          disabled={disabled || currentDirection === 'RIGHT'}
-        >
-          <IconSymbol name="chevron.left" size={32} color={textColor} />
-        </TouchableOpacity>
-
+        <TouchButton direction="LEFT" icon="chevron.left" />
         <View style={styles.spacer} />
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: buttonColor },
-            currentDirection === 'RIGHT' && styles.active
-          ]}
-          onPress={() => onDirectionChange('RIGHT')}
-          disabled={disabled || currentDirection === 'LEFT'}
-        >
-          <IconSymbol name="chevron.right" size={32} color={textColor} />
-        </TouchableOpacity>
+        <TouchButton direction="RIGHT" icon="chevron.right" />
       </View>
 
-      {/* Down Button */}
       <View style={styles.row}>
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: buttonColor },
-            currentDirection === 'DOWN' && styles.active
-          ]}
-          onPress={() => onDirectionChange('DOWN')}
-          disabled={disabled || currentDirection === 'UP'}
-        >
-          <IconSymbol name="chevron.down" size={32} color={textColor} />
-        </TouchableOpacity>
+        <TouchButton direction="DOWN" icon="chevron.down" />
       </View>
     </View>
   );
@@ -139,15 +144,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   button: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     alignItems: 'center',
     justifyContent: 'center',
     margin: 5,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   active: {
     opacity: 0.8,
+    transform: [{ scale: 0.95 }],
   },
   spacer: {
     width: 60,
