@@ -30,7 +30,7 @@
     "typescript": "^5.3.3"
   },
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "node dist/src/index.js",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "migrate": "ts-node db/migrations/run.ts"

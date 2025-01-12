@@ -21,12 +21,6 @@ build/
 # TypeScript Cache
 *.tsbuildinfo
 
-# Environment Variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # Optional npm cache directory
 .npm
