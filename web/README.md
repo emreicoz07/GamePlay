@@ -1,50 +1,115 @@
-# Welcome to your Expo app 👋
+# 🐍 Snake Game
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Modern ve rekabetçi bir yaklaşımla yeniden tasarlanmış klasik yılan oyunu.
 
-## Get started
+## 🎨 Tasarım Sistemi
 
-1. Install dependencies
+### Renk Paleti
 
-   ```bash
-   npm install
-   ```
+#### Ana Renkler
+- Primary Blue: `#2A6B9B` (Ana marka rengi, butonlar)
+- Secondary Teal: `#48B8A0` (Vurgular, başarı durumları, yılan gövdesi)
+- Accent Orange: `#FF7F50` (Yemek öğeleri, özel vurgular)
 
-2. Start the app
+#### Arka Plan Renkleri
+- Light Mode: `#F5F7FA`
+- Dark Mode: `#1A1D21`
 
-   ```bash
-    npx expo start
-   ```
+#### Arayüz Elementleri
+- Light Text: `#FFFFFF`
+- Dark Text: `#1A1D21`
+- Muted Text: `#6B7280`
+- Border Light: `#E5E7EB`
+- Border Dark: `#374151`
 
-In the output, you'll find options to open the app in a
+#### Oyun Elementleri
+- Snake Head: `#48B8A0`
+- Snake Body: `#5FCFB6`
+- Regular Food: `#FF7F50`
+- Special Food: `#FFD700`
+- Grid Light: `#EDF2F7`
+- Grid Dark: `#2D3748`
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🎮 Özellikler
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Oyun Mekanikleri
+- Duvarlardan geçebilen yılan
+- Başlangıç geri sayım animasyonu
+- Farklı zorluk seviyeleri
+- Canlı skor gösterimi
+- Duraklat/Devam Et özelliği
+- Ülke bayrağı gösterimi
 
-## Get a fresh project
+### Skor ve Rekabet
+- Global skor tablosu
+- Ülke bazlı sıralamalar
+- Özel başarı rozetleri
+- Anlık skor güncellemeleri
 
-When you're ready, run:
+## 🚀 Başlangıç
 
+1. Bağımlılıkları yükleyin:
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Uygulamayı başlatın:
+```bash
+npx expo start
+```
 
-## Learn more
+## 📱 Desteklenen Platformlar
 
-To learn more about developing your project with Expo, look at the following resources:
+- iOS (Expo Go veya Simulator)
+- Android (Expo Go veya Emulator)
+- Web (Tarayıcı)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 🛠 Teknik Özellikler
 
-## Join the community
+### Frontend
+- React Native + Expo
+- Gesture Controls
+- Redux State Management
+- JWT Authentication
 
-Join our community of developers creating universal apps.
+### Backend
+- Node.js + Express
+- PostgreSQL Database
+- RESTful API
+- Secure Authentication
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🔐 Güvenlik
+
+- HTTPS Protokolü
+- JWT Token Authentication
+- Veri Şifreleme
+- Rate Limiting
+
+## 🌐 API Endpoints
+
+```typescript
+POST /api/players     // Oyuncu kaydı
+POST /api/scores     // Skor kaydetme
+GET  /api/leaderboard // Skor tablosu
+GET  /api/countries   // Ülke skorları
+```
+
+## 🎯 Geliştirme Yol Haritası
+
+- [ ] Çoklu dil desteği
+- [ ] Özel temalar
+- [ ] Çevrimiçi turnuvalar
+- [ ] Arkadaş sistemi
+- [ ] Başarı rozetleri
+
+## 🤝 Katkıda Bulunma
+
+1. Fork yapın
+2. Feature branch oluşturun
+3. Değişikliklerinizi commit edin
+4. Branch'inizi push edin
+5. Pull request açın
+
+## 📄 Lisans
+
+MIT License - daha fazla detay için [LICENSE.md](LICENSE.md) dosyasına bakın.

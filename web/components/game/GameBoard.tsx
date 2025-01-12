@@ -1,5 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import type { Point } from '@/hooks/useGameLogic';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 type GameBoardProps = {
   size: number;
@@ -9,10 +10,20 @@ type GameBoardProps = {
 };
 
 export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
+  const backgroundColor = useThemeColor({}, 'gridBackground');
+  const borderColor = useThemeColor({}, 'border');
   const cellSize = size / gridSize;
 
   return (
-    <View style={[styles.board, { width: size, height: size }]}>
+    <View style={[
+      styles.board, 
+      { 
+        width: size, 
+        height: size,
+        backgroundColor,
+        borderColor,
+      }
+    ]}>
       {/* Render food */}
       <View
         style={[
@@ -20,6 +31,7 @@ export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
           {
             width: cellSize,
             height: cellSize,
+            backgroundColor: '#FF7F50', // Accent Orange for food
             transform: [
               { translateX: food.x * cellSize },
               { translateY: food.y * cellSize },
@@ -37,12 +49,12 @@ export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
             {
               width: cellSize,
               height: cellSize,
+              backgroundColor: index === 0 ? '#48B8A0' : '#5FCFB6', // Snake Head/Body colors
               transform: [
                 { translateX: segment.x * cellSize },
                 { translateY: segment.y * cellSize },
               ],
             },
-            index === 0 && styles.snakeHead,
           ]}
         />
       ))}
@@ -52,21 +64,14 @@ export function GameBoard({ size, gridSize, snake, food }: GameBoardProps) {
 
 const styles = StyleSheet.create({
   board: {
-    backgroundColor: '#f0f0f0',
     borderWidth: 2,
-    borderColor: '#ccc',
     position: 'relative',
   },
   snakeSegment: {
-    backgroundColor: '#4CAF50',
     position: 'absolute',
     borderRadius: 4,
   },
-  snakeHead: {
-    backgroundColor: '#388E3C',
-  },
   food: {
-    backgroundColor: '#F44336',
     position: 'absolute',
     borderRadius: 8,
   },

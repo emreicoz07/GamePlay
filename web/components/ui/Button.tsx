@@ -1,5 +1,6 @@
 import { TouchableOpacity, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 type ButtonProps = {
   children: string;
@@ -9,17 +10,21 @@ type ButtonProps = {
 };
 
 export function Button({ children, onPress, disabled, style }: ButtonProps) {
+  const backgroundColor = useThemeColor({}, 'tint');
+  const textColor = '#FFFFFF'; // Light Text
+
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
       style={[
         styles.button,
+        { backgroundColor },
         disabled && styles.disabled,
         style,
       ]}
     >
-      <ThemedText style={styles.text}>
+      <ThemedText style={[styles.text, { color: textColor }]}>
         {children}
       </ThemedText>
     </TouchableOpacity>
@@ -28,7 +33,6 @@ export function Button({ children, onPress, disabled, style }: ButtonProps) {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#0a7ea4',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -38,7 +42,6 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   text: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
