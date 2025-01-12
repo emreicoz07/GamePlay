@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack } from 'expo-router/stack';
 
 export default function GameLayout() {
   return (
@@ -21,7 +21,9 @@ export default function GameLayout() {
         name="leaderboard" 
         options={{ 
           title: "Leaderboard",
-          presentation: 'modal'
+          presentation: 'modal',
+          headerShown: true,
+          headerBackTitle: "Back",
         }} 
       />
       <Stack.Screen 

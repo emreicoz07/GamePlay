@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Dimensions, View, Platform } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { Slot, useLocalSearchParams } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { GameBoard } from '@/components/game/GameBoard';
@@ -11,16 +11,15 @@ import { useGameLogic } from '@/hooks/useGameLogic';
 
 // Web için özel boyutlandırma
 const BOARD_SIZE = Platform.OS === 'web' 
-  ? Math.min(600, Math.floor(Dimensions.get('window').height * 0.6)) // Web için maksimum 600px veya ekran yüksekliğinin %60'ı
-  : Math.floor(Dimensions.get('window').width * 0.9); // Mobil için ekran genişliğinin %90'ı
+  ? Math.min(600, Math.floor(Dimensions.get('window').height * 0.6))
+  : Math.floor(Dimensions.get('window').width * 0.9);
 
 const GRID_SIZE = 20;
 
 export default function GameScreen() {
-  const { playerName, country } = useLocalSearchParams<{ 
-    playerName: string;
-    country: string;
-  }>();
+  const params = useLocalSearchParams();
+  const playerName = params.playerName as string;
+  const country = params.country as string;
   
   const {
     snake,
