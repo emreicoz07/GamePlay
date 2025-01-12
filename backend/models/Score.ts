@@ -27,26 +27,11 @@ const scoreSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
-  // Atlas search için index
   collation: { locale: 'tr', strength: 2 }
 });
 
-// Bileşik indeks
+// Bileşik indeksler
 scoreSchema.index({ score: -1, createdAt: -1 });
 scoreSchema.index({ countryCode: 1, score: -1 });
-
-// Virtuals
-scoreSchema.virtual('formattedDate').get(function() {
-  return this.createdAt.toLocaleDateString();
-});
-
-// Lean sorgular için dönüşüm
-scoreSchema.set('toJSON', {
-  virtuals: true,
-  transform: (_, ret) => {
-    delete ret.__v;
-    return ret;
-  }
-});
 
 export const Score = mongoose.model('Score', scoreSchema); 
