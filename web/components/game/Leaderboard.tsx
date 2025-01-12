@@ -40,7 +40,7 @@ export function Leaderboard() {
 
   const renderItem = ({ item }: { item: LeaderboardEntry }) => (
     <View style={styles.row}>
-      <ThemedText style={styles.rankText}>#{item.rank}</ThemedText>
+      <ThemedText style={styles.rankText}>{item.rank}</ThemedText>
       <View style={styles.playerInfo}>
         <Image
           source={{ uri: `https://flagcdn.com/w40/${item.countryCode.toLowerCase()}.png` }}
@@ -62,11 +62,14 @@ export function Leaderboard() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListHeaderComponent={() => (
-          <View style={styles.header}>
-            <ThemedText style={styles.headerText}>Sıra</ThemedText>
-            <ThemedText style={[styles.headerText, styles.nameText]}>İsim</ThemedText>
-            <ThemedText style={styles.headerText}>Skor</ThemedText>
-          </View>
+          <>
+            <ThemedText style={styles.title}>LEADERBOARD</ThemedText>
+            <View style={styles.header}>
+              <ThemedText style={styles.headerText}>Sıra</ThemedText>
+              <ThemedText style={[styles.headerText, styles.nameText]}>İsim</ThemedText>
+              <ThemedText style={styles.headerText}>Skor</ThemedText>
+            </View>
+          </>
         )}
         renderItem={renderItem}
       />
@@ -125,5 +128,11 @@ const styles = StyleSheet.create({
   nameText: {
     flex: 2,
     textAlign: 'left',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
   },
 }); 

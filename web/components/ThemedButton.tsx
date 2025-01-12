@@ -23,35 +23,31 @@ export function ThemedButton({
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
-  const getBackgroundColor = () => {
-    if (disabled) return colors.buttonDisabled;
-    if (variant === 'secondary') return colors.buttonSecondary;
-    return colors.buttonPrimary;
+  const buttonStyle: ViewStyle = {
+    ...styles.button,
+    backgroundColor: disabled
+      ? colors.buttonDisabled
+      : variant === 'primary'
+      ? colors.buttonPrimary
+      : colors.buttonSecondary,
+    pointerEvents: disabled ? 'none' : 'auto',
+    ...style,
   };
 
-  const getTextColor = () => {
-    if (disabled) return colors.textDisabled;
-    if (variant === 'secondary') return colors.textSecondary;
-    return colors.textPrimary;
-  };
+  const textColor = disabled
+    ? colors.textDisabled
+    : variant === 'primary'
+    ? colors.textPrimary
+    : colors.textSecondary;
 
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        { backgroundColor: getBackgroundColor() },
-        style
-      ]}
       onPress={onPress}
       disabled={disabled}
+      style={buttonStyle}
+      activeOpacity={0.7}
     >
-      <Text
-        style={[
-          styles.text,
-          { color: getTextColor() },
-          textStyle
-        ]}
-      >
+      <Text style={[styles.text, { color: textColor }, textStyle]}>
         {title}
       </Text>
     </TouchableOpacity>
